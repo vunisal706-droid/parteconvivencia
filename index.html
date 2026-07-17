@@ -438,7 +438,7 @@ body:not(.autenticado) header,body:not(.autenticado) main{display:none}
     <h2>🧒 Alumnado</h2>
     <p class="hint">Puedes importar desde Excel/CSV (columnas: nombre, curso) o añadir manualmente. Recomendación RGPD: usa nombre y primer apellido o iniciales.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-      <button class="btn btn-primary" id="btnImportAlumnos">⬆️ Importar Excel/CSV</button>
+      <button class="btn btn-primary" id="btnImportAlumnos">⬆️ Importar desde PDF (Séneca)</button>
       <button class="btn btn-ghost" id="btnAddAlumno">＋ Añadir manualmente</button>
     </div>
     <input type="search" id="buscaAlumnos" placeholder="🔍 Filtrar alumnado…" style="margin-bottom:12px">
@@ -1346,7 +1346,26 @@ $('#btnVaciarPersonal').onclick=async()=>{
 
 /* ---- Importación de personal (Excel / PDF / Pegar) ---- */
 $('#btnImportPersonal').onclick=()=>abrirImportador('personal');
-$('#btnImportAlumnos').onclick=()=>abrirImportador('alumnos');
+$('#btnImportAlumnos').onclick=()=>{
+  openModal(`
+    <h3>⬆️ Importar alumnado desde PDF de Séneca</h3>
+    <p class="hint">Sube el PDF de la lista de clase de Séneca (formato: <b>1. Apellido1 Apellido2 Nombre</b>). Se generarán automáticamente las <b>siglas</b> con el nombre primero. Puedes subir varios PDFs, uno por curso.</p>
+    <div class="field" style="margin-bottom:12px"><label for="impCurso">¿De qué curso es esta lista?</label>
+      <select id="impCurso"><option value="">— Selecciona el curso —</option>${CURSOS.map(c=>'<option>'+c+'</option>').join('')}</select>
+    </div>
+    <div class="dropzone" id="dzAlum">Arrastra aquí el <b>PDF</b> de la lista de clase<br>o haz clic para seleccionarlo</div>
+    <div id="impRevision"></div>`);
+  const dz=$('#dzAlum');
+  const procesar=f=>{
+    const curso=$('#impCurso').value;
+    if(!curso){toast('✗ Selecciona primero el curso de esta lista','error');return}
+    procesarPDFAlumnos(f,curso);
+  };
+  dz.onclick=()=>{const fi=$('#fileInput');fi.accept='.pdf';fi.onchange=e=>{if(e.target.files[0])procesar(e.target.files[0])};fi.value='';fi.click()};
+  dz.ondragover=e=>{e.preventDefault();dz.classList.add('over')};
+  dz.ondragleave=()=>dz.classList.remove('over');
+  dz.ondrop=e=>{e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])procesar(e.dataTransfer.files[0])};
+};
 
 function abrirImportador(destino){
   const esAlumnos=destino==='alumnos';
@@ -1354,7 +1373,7 @@ function abrirImportador(destino){
     <h3>⬆️ Importar ${esAlumnos?'alumnado':'personal'} del nuevo curso</h3>
     <div class="subtabs">
       <button class="active" data-m="excel">📊 Excel / CSV</button>
-      <button data-m="pdf">📄 PDF</button>
+      ${esAlumnos?'<button data-m="pdf">📄 PDF</button>':''}
       <button data-m="pegar">📋 Pegar texto</button>
     </div>
     <div id="impPanel"></div>
@@ -1535,6 +1554,67 @@ async function procesarPDF(file,destino){
     const nombres=parsearNombres(texto);
     if(!nombres.length)return toast('✗ No se han detectado nombres en el PDF (¿es un PDF escaneado?)','error');
     mostrarRevision(nombres,destino);
+  }catch(e){toast('✗ No se pudo procesar el PDF','error')}
+}
+
+async function procesarPDFAlumnos(file,curso){
+  if(!file)return;
+  toast('Extrayendo alumnado del PDF…');
+  try{
+    await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const buf=await file.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+    let lineas=[];
+    for(let p=1;p<=pdf.numPages;p++){
+      const page=await pdf.getPage(p);
+      const tc=await page.getTextContent();
+      const porY=new Map();
+      tc.items.forEach(it=>{const y=Math.round(it.transform[5]);porY.set(y,(porY.get(y)||'')+' '+it.str)});
+      [...porY.entries()].sort((a,b)=>b[0]-a[0]).forEach(([,l])=>lineas.push(l.trim()));
+    }
+    let items=parsearListaClase(lineas.join('\n'));
+    if(!items.length){
+      items=parsearNombres(lineas.join('\n')).map(n=>({nombre:siglasAlumno(n),completo:n,curso}));
+    }else{
+      items.forEach(it=>it.curso=curso);
+    }
+    if(!items.length)return toast('✗ No se han detectado alumnos en el PDF. ¿Es un PDF escaneado?','error');
+    // Mostrar revisión inline
+    const existentes=new Set(ALUMNOS.map(a=>(a.nombre||'').toLowerCase()));
+    $('#impRevision').innerHTML=`
+      <div class="section-title" style="margin-top:18px">Revisión · ${items.length} alumnos · ${curso}</div>
+      <p class="hint">Se muestran las siglas generadas (nombre primero). Puedes editar antes de guardar. Los duplicados aparecen desmarcados.</p>
+      <div class="check-list" style="max-height:280px" id="revAlumList">
+        ${items.map((it,i)=>{
+          const dup=existentes.has(it.nombre.toLowerCase());
+          return '<label class="check-item '+(dup?'':'sel')+'">'+
+            '<input type="checkbox" data-i="'+i+'" '+(dup?'':'checked')+'>'+
+            '<span style="flex:1;display:grid;grid-template-columns:80px 1fr;gap:6px;align-items:center">'+
+              '<input type="text" value="'+it.nombre+'" data-n="'+i+'" style="min-height:34px;padding:5px 8px;font-size:14px;font-weight:700;text-align:center">'+
+              '<span style="font-size:13px;color:var(--color-text-muted)">'+it.completo+'</span>'+
+            '</span>'+(dup?'<span style="font-size:11px;color:var(--color-warning)">ya existe</span>':'')+
+          '</label>'}).join('')}
+      </div>
+      <div class="actions">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" id="impAlumGuardar">💾 Importar ${items.length} alumnos en ${curso}</button>
+      </div>`;
+    bindCheckStyle('#revAlumList');
+    $('#impAlumGuardar').onclick=async()=>{
+      const btn=$('#impAlumGuardar');
+      const sel=$$('#revAlumList input[type=checkbox]:checked').map(c=>{
+        const i=+c.dataset.i;
+        const nombre=document.querySelector('#revAlumList input[data-n="'+i+'"]').value.trim();
+        return nombre?{nombre,curso}:null;
+      }).filter(Boolean);
+      if(!sel.length)return toast('✗ No hay alumnos seleccionados','error');
+      btn.disabled=true;btn.textContent='Importando…';
+      try{
+        await dbBatch('alumnos',sel);
+        toast('✓ '+sel.length+' alumnos de '+curso+' importados');closeModal();
+      }catch{toast('✗ Error al importar','error');btn.disabled=false;btn.textContent='💾 Importar'}
+    };
   }catch(e){toast('✗ No se pudo procesar el PDF','error')}
 }
 
