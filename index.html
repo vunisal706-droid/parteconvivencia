@@ -197,7 +197,7 @@ body:not(.autenticado) header,body:not(.autenticado) main{display:none}
       <select id="lgNombre"><option value="">— Selecciona tu nombre —</option></select>
     </div>
     <div class="field" style="margin-top:14px">
-      <label for="lgIdea">Usuario IdEA (tu clave de Séneca)</label>
+      <label for="lgIdea">Tu usuario de Séneca (IdEA)</label>
       <input type="password" id="lgIdea" placeholder="p. ej. ebenper369" autocomplete="off" autocapitalize="off" spellcheck="false">
       <label style="display:flex;align-items:center;gap:8px;margin-top:8px;font-weight:500;font-size:13px;cursor:pointer">
         <input type="checkbox" id="lgVer" style="width:16px;height:16px"> Mostrar
@@ -205,7 +205,7 @@ body:not(.autenticado) header,body:not(.autenticado) main{display:none}
     </div>
     <button class="btn btn-primary" id="lgEntrar" style="width:100%;margin-top:18px">Entrar</button>
     <p id="lgError" style="color:var(--color-error);font-size:13.5px;text-align:center;margin-top:12px;min-height:18px"></p>
-    <p style="text-align:center;color:var(--color-text-muted);font-size:12px;margin-top:6px">Tu usuario IdEA es el mismo con el que accedes a Séneca.</p>
+    <p style="text-align:center;color:var(--color-text-muted);font-size:12px;margin-top:6px">Es tu usuario de Séneca, NO tu contraseña. Ejemplo: ebenper369</p>
   </div>
 </div>
 
@@ -646,7 +646,8 @@ async function iniciarLogin(){
       sel.innerHTML='<option value="">— (aún no hay personal cargado) —</option>';
       $('#lgError').textContent='No hay personal en la base de datos. La primera vez, entra como administrador para importar el claustro.';
       // permitir un acceso inicial de arranque
-      sel.innerHTML+='<option value="__ADMIN__">⚙️ Entrar para configurar (primera vez)</option>';
+      // primera vez sin personal: se entra con IdEA de dirección (vunisal706)
+      sel.innerHTML+='<option value="__ADMIN__">⚙️ Configuración inicial (dirección)</option>';
     }else{
       sel.innerHTML='<option value="">— Selecciona tu nombre —</option>'+
         lista.map(p=>`<option value="${p.id}">${esc(p.nombre)}</option>`).join('');
@@ -661,22 +662,22 @@ $('#lgIdea').addEventListener('keydown',e=>{if(e.key==='Enter')$('#lgEntrar').cl
 $('#lgEntrar').onclick=async()=>{
   const id=$('#lgNombre').value, idea=$('#lgIdea').value.trim().toLowerCase();
   $('#lgError').textContent='';
-  if(id==='__ADMIN__'){ // arranque inicial sin personal aún
-    if(idea!=='admin')return $('#lgError').textContent='Para la configuración inicial, escribe: admin';
-    usuarioActual={nombre:'Administrador',nombrePila:'Administrador',idea:'admin'};
+  if(id==='__ADMIN__'){ // arranque inicial sin personal
+    if(idea!=='vunisal706')return $('#lgError').textContent='Solo la dirección del centro puede acceder a la configuración inicial.';
+    usuarioActual={nombre:'Víctor Manuel Única Salas',nombrePila:'Víctor',idea:'vunisal706',esAdmin:true};
     return entrarApp();
   }
   if(!id)return $('#lgError').textContent='Selecciona tu nombre en la lista.';
-  if(!idea)return $('#lgError').textContent='Escribe tu usuario IdEA.';
+  if(!idea)return $('#lgError').textContent='Escribe tu usuario de Séneca (IdEA).';
   const p=PERSONAL.find(x=>x.id===id)||aLista(await get(ref(db,'convivencia/personal'))).find(x=>x.id===id);
   if(!p)return $('#lgError').textContent='Usuario no encontrado. Recarga la página.';
   if(!p.idea){
     return $('#lgError').textContent='Tu usuario aún no tiene IdEA asignado. Avisa a dirección para completarlo.';
   }
   if(p.idea.toLowerCase()!==idea){
-    return $('#lgError').textContent='El usuario IdEA no coincide. Revisa que sea el mismo de Séneca.';
+    return $('#lgError').textContent='El usuario no coincide. Escribe tu usuario de Séneca (IdEA), no la contraseña.';
   }
-  usuarioActual={id:p.id,nombre:p.nombre,nombrePila:p.nombrePila||p.nombre.split(' ')[0],idea:p.idea};
+  usuarioActual={id:p.id,nombre:p.nombre,nombrePila:p.nombrePila||p.nombre.split(' ')[0],idea:p.idea,esAdmin:p.idea.toLowerCase()==='vunisal706'};
   entrarApp();
 };
 
@@ -687,6 +688,10 @@ function entrarApp(){
   $('#saludo').innerHTML=`<span class="hola">${saludo}, <b>${esc(usuarioActual.nombrePila)}</b></span>
     <button class="btn btn-ghost btn-sm" id="btnLogout">Salir</button>`;
   $('#btnLogout').onclick=()=>location.reload();
+  // Solo dirección ve las pestañas de gestión
+  if(!usuarioActual.esAdmin){
+    $$('nav button[data-tab=personal], nav button[data-tab=alumnado]').forEach(b=>b.style.display='none');
+  }
   // preseleccionar al maestro como "profesional que comunica" en los formularios
   suscribir();
   setTimeout(()=>{
@@ -1538,7 +1543,7 @@ function mostrarRevisionPersonal(items){
   const existentes=new Map(PERSONAL.map(p=>[(p.idea||'').toLowerCase(),p]));
   $('#impRevision').innerHTML=`
     <div class="section-title" style="margin-top:18px">Revisión · ${items.length} profesionales</div>
-    <p class="hint">Comprueba el nombre de pila (se usará en el saludo) y el usuario IdEA (su clave de acceso). Los que ya existen aparecen desmarcados. Al importar se <b>fusiona</b>: se conservan los partes y se actualizan credenciales.</p>
+    <p class="hint">Comprueba el nombre de pila (se usará en el saludo) y el usuario de Séneca (IdEA). Los que ya existen aparecen desmarcados. Al importar se <b>fusiona</b>: se conservan los partes y se actualizan credenciales.</p>
     <div class="check-list" style="max-height:300px" id="revPersList">
       ${items.map((it,i)=>{
         const dup=existentes.has(it.idea);
