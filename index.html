@@ -20,17 +20,29 @@
   --radius:14px; --shadow-sm:0 1px 3px rgba(15,23,42,.08); --shadow-md:0 8px 24px rgba(15,23,42,.10);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--color-bg);color:var(--color-text);min-height:100vh}
+body{font-family:'Inter',system-ui,sans-serif;color:var(--color-text);min-height:100vh;
+  background:
+    radial-gradient(ellipse 90% 70% at 15% 8%, rgba(37,99,235,.14) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 60% at 88% 12%, rgba(124,58,237,.12) 0%, transparent 55%),
+    radial-gradient(ellipse 85% 65% at 75% 92%, rgba(8,145,178,.12) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 8% 85%, rgba(22,163,74,.10) 0%, transparent 55%),
+    var(--color-bg);
+  background-size:170% 170%,160% 160%,175% 175%,165% 165%,100% 100%;
+  background-attachment:fixed;
+  animation:fondoVivo 26s ease-in-out infinite alternate}
+@keyframes fondoVivo{
+  0%{background-position:0% 0%,100% 0%,100% 100%,0% 100%,0 0}
+  50%{background-position:60% 35%,40% 55%,55% 45%,45% 60%,0 0}
+  100%{background-position:100% 70%,0% 90%,10% 15%,85% 5%,0 0}}
+@media (prefers-reduced-motion: reduce){body{animation:none}}
 button{font-family:inherit;cursor:pointer}
 input,select,textarea{font-family:inherit;font-size:15px;color:var(--color-text)}
 
 /* ===== Header ===== */
 header{
-  background:
-    radial-gradient(ellipse at 0% 0%, rgba(37,99,235,.16) 0%, transparent 55%),
-    radial-gradient(ellipse at 100% 0%, rgba(124,58,237,.12) 0%, transparent 55%),
-    radial-gradient(ellipse at 60% 120%, rgba(8,145,178,.10) 0%, transparent 60%),
-    #ffffff;
+  background:rgba(255,255,255,.72);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
   border-bottom:1px solid var(--color-border);
   padding:20px 24px 0;
 }
@@ -172,6 +184,27 @@ ul.plain li::before{content:"•";position:absolute;left:6px;color:var(--color-p
 .conseq-foot{margin-top:10px;padding:10px 12px;background:var(--color-info-bg);border-radius:8px;font-size:13px;line-height:1.5}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}.tipo-body{transition:none}}
 
+/* ===== Gráficas ===== */
+.gcard{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:18px;margin-bottom:16px}
+.gcard h3{font-size:14.5px;font-weight:700;margin-bottom:14px}
+.hbar{display:grid;grid-template-columns:130px 1fr 34px;gap:8px;align-items:center;margin-bottom:7px;font-size:13px}
+.hbar .lbl{text-align:right;color:var(--color-text-muted);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar .track{background:var(--color-bg);border-radius:6px;height:20px;overflow:hidden}
+.hbar .fill{height:100%;border-radius:6px;background:var(--color-primary);transition:width .5s ease;min-width:2px}
+.hbar .num{font-weight:800;font-size:13px}
+.vbars{display:flex;align-items:flex-end;gap:6px;height:140px;padding-top:8px}
+.vbars .vb{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.vbars .vcol{width:100%;max-width:44px;border-radius:6px 6px 0 0;display:flex;flex-direction:column-reverse;overflow:hidden}
+.vbars .seg-c{background:var(--color-warning)} .vbars .seg-g{background:var(--color-error)}
+.vbars .vlbl{font-size:11px;color:var(--color-text-muted);font-weight:600}
+.vbars .vnum{font-size:11.5px;font-weight:800}
+.heat{display:grid;gap:4px;font-size:11px}
+.heat .hcell{border-radius:5px;min-height:26px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.heat .hlbl{color:var(--color-text-muted);font-weight:600;display:flex;align-items:center;font-size:11.5px}
+.leyenda{display:flex;gap:14px;font-size:12px;color:var(--color-text-muted);margin-top:10px;flex-wrap:wrap}
+.leyenda span{display:inline-flex;align-items:center;gap:5px}
+.leyenda i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
 /* ===== Login ===== */
 #loginScreen{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;
   background:radial-gradient(ellipse at 20% 10%,rgba(37,99,235,.18),transparent 55%),radial-gradient(ellipse at 90% 90%,rgba(124,58,237,.15),transparent 55%),var(--color-bg)}
@@ -226,7 +259,7 @@ body:not(.autenticado) header,body:not(.autenticado) main{display:none}
     <button data-tab="colectivo" role="tab">👥 Colectivo</button>
     <button data-tab="lista" role="tab">📋 Incidencias</button>
     <button data-tab="personal" role="tab">👩‍🏫 Personal</button>
-    <button data-tab="alumnado" role="tab">🧒 Alumnado</button>
+    <button data-tab="graficas" role="tab">📊 Gráficas</button>
     <button data-tab="protocolos" role="tab">🛡️ Protocolos</button>
     <button data-tab="compromiso" role="tab">🤝 Compromiso</button>
   </nav>
@@ -274,11 +307,13 @@ body:not(.autenticado) header,body:not(.autenticado) main{display:none}
         <select id="fProfesional"><option value="">— Selecciona —</option></select>
       </div>
       <div class="field">
-        <label for="fCursoSel">Alumnado implicado <span class="req">*</span></label>
-        <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:8px">
-          <select id="fCursoSel"><option value="">— Curso —</option></select>
-          <select id="fAlumnoSel"><option value="">— Alumno/a —</option></select>
+        <label for="fAlumnoTxt">Alumnado implicado <span class="req">*</span></label>
+        <div style="display:grid;grid-template-columns:1.1fr .9fr auto;gap:8px">
+          <input type="text" id="fAlumnoTxt" placeholder="Siglas o nombre de pila (LAT, Luis…)" autocapitalize="characters">
+          <select id="fAlumnoCurso"><option value="">— Curso —</option></select>
+          <button class="btn btn-primary btn-sm" type="button" id="fAlumnoAdd" style="min-height:44px;white-space:nowrap">＋ Añadir alumno</button>
         </div>
+        <p class="hint" style="margin:6px 0 0">🔒 Por privacidad, usa siglas o nombre de pila, nunca el nombre completo.</p>
         <div class="chips" id="fAlumnosChips"></div>
       </div>
     </div>
@@ -385,10 +420,11 @@ body:not(.autenticado) header,body:not(.autenticado) main{display:none}
 
     <div class="section-title">Alumnado implicado en el incidente colectivo</div>
     <div class="grid2">
-      <div class="field"><label for="cCursoSel">Añadir alumno/a</label>
-        <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:8px">
-          <select id="cCursoSel"><option value="">— Curso —</option></select>
-          <select id="cAlumnoSel"><option value="">— Alumno/a —</option></select>
+      <div class="field"><label for="cAlumnoTxt">Añadir alumno/a (siglas o nombre de pila)</label>
+        <div style="display:grid;grid-template-columns:1.1fr .9fr auto;gap:8px">
+          <input type="text" id="cAlumnoTxt" placeholder="LAT, Luis…" autocapitalize="characters">
+          <select id="cAlumnoCurso"><option value="">— Curso —</option></select>
+          <button class="btn btn-primary btn-sm" type="button" id="cAlumnoAdd" style="min-height:44px;white-space:nowrap">＋ Añadir alumno</button>
         </div>
       </div>
     </div>
@@ -432,18 +468,14 @@ body:not(.autenticado) header,body:not(.autenticado) main{display:none}
   </div>
 </section>
 
-<!-- ============ TAB: ALUMNADO ============ -->
-<section class="tab" id="tab-alumnado">
-  <div class="card">
-    <h2>🧒 Alumnado</h2>
-    <p class="hint">Puedes importar desde Excel/CSV (columnas: nombre, curso) o añadir manualmente. Recomendación RGPD: usa nombre y primer apellido o iniciales.</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-      <button class="btn btn-primary" id="btnImportAlumnos">⬆️ Importar desde PDF (Séneca)</button>
-      <button class="btn btn-ghost" id="btnAddAlumno">＋ Añadir manualmente</button>
-    </div>
-    <input type="search" id="buscaAlumnos" placeholder="🔍 Filtrar alumnado…" style="margin-bottom:12px">
-    <div id="listaAlumnos"></div>
+<!-- ============ TAB: GRÁFICAS ============ -->
+<section class="tab" id="tab-graficas">
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+    <h2 style="font-size:17px;font-weight:800;flex:1">📊 Seguimiento de la convivencia</h2>
+    <select id="gCursoEscolar" style="max-width:170px"></select>
+    <button class="btn btn-primary" id="btnTrimestral">📄 Seguimiento trimestral</button>
   </div>
+  <div id="graficasCont"></div>
 </section>
 
 <!-- ============ TAB: PROTOCOLOS ============ -->
@@ -579,7 +611,7 @@ const CORRECCIONES = {
 const OTRAS_MEDIDAS = ["Mediación escolar","Aula de convivencia","Tutoría compartida","Compromiso de convivencia","Otras incluidas en el plan de convivencia"];
 
 const CURSOS = ["Infantil 3 años","Infantil 4 años","Infantil 5 años","1º Primaria","2º Primaria","3º Primaria","4º Primaria","5º Primaria","6º Primaria"];
-const GRUPOS = ["","A","B","C"];
+const GRUPOS = [""]; // línea 1: un solo grupo por nivel en el centro
 const ordenCurso = c => { // "3º Primaria B" → índice para ordenar
   if(!c) return 99;
   const i = CURSOS.findIndex(x=>c.startsWith(x));
@@ -587,8 +619,8 @@ const ordenCurso = c => { // "3º Primaria B" → índice para ordenar
 };
 
 /* ================= ESTADO ================= */
-let db=null, auth=null, PERSONAL=[], ALUMNOS=[], INCIDENCIAS=[];
-let alumnosSel=[]; // ids seleccionados en el parte
+let db=null, auth=null, PERSONAL=[], INCIDENCIAS=[];
+let alumnosSel=[]; // [{nombre,curso}] introducidos manualmente
 let usuarioActual=null; // {nombre, nombrePila, idea}
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -690,7 +722,7 @@ function entrarApp(){
   $('#btnLogout').onclick=()=>location.reload();
   // Solo dirección ve las pestañas de gestión
   if(!usuarioActual.esAdmin){
-    $$('nav button[data-tab=personal], nav button[data-tab=alumnado]').forEach(b=>b.style.display='none');
+    $$('nav button[data-tab=personal]').forEach(b=>b.style.display='none');
   }
   // preseleccionar al maestro como "profesional que comunica" en los formularios
   suscribir();
@@ -720,13 +752,10 @@ function suscribir(){
     st.textContent='● Sincronizado'; st.className='ok';
     renderPersonal(); refrescarSelects();
   },()=>{st.textContent='⚠ Sin conexión / reglas';st.className='err'});
-  onValue(ref(db,'convivencia/alumnos'),s=>{
-    ALUMNOS=aLista(s).sort((a,b)=>ordenCurso(a.curso)-ordenCurso(b.curso)||a.nombre.localeCompare(b.nombre,'es'));
-    renderAlumnos(); refrescarSelects();
-  });
   onValue(ref(db,'convivencia/incidencias'),s=>{
     INCIDENCIAS=aLista(s).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')||(b.creado||0)-(a.creado||0));
     renderLista();
+    if(document.querySelector('#tab-graficas.active'))renderGraficas();
   });
 }
 
@@ -734,6 +763,7 @@ function suscribir(){
 $$('nav button').forEach(b=>b.onclick=()=>{
   $$('nav button').forEach(x=>x.classList.toggle('active',x===b));
   $$('.tab').forEach(t=>t.classList.toggle('active',t.id==='tab-'+b.dataset.tab));
+  if(b.dataset.tab==='graficas')renderGraficas();
 });
 
 /* ================= FORMULARIO PARTE ================= */
@@ -787,43 +817,35 @@ $('#fNotifTutores').onchange=e=>{
   if(e.target.checked&&!$('#fNotifFecha').value)$('#fNotifFecha').value=hoy();
 };
 
-// chips alumnado (curso → alumno)
-$('#fCursoSel').onchange=()=>rellenarAlumnosDeCurso();
-function rellenarAlumnosDeCurso(){
-  const c=$('#fCursoSel').value;
-  const lista=ALUMNOS.filter(a=>!c||(a.curso||'')===c);
-  $('#fAlumnoSel').innerHTML='<option value="">— Alumno/a —</option>'+
-    lista.map(a=>`<option value="${a.id}">${esc(a.nombre)}${!c&&a.curso?' ('+esc(a.curso)+')':''}</option>`).join('');
+// chips alumnado (entrada manual: siglas + curso)
+function addAlumnoManual(txtId,cursoId,cb){
+  const nombre=$(txtId).value.trim().toUpperCase();
+  const curso=$(cursoId).value;
+  if(!nombre)return toast('✗ Escribe las siglas o el nombre de pila','error');
+  if(!curso)return toast('✗ Selecciona el curso','error');
+  cb({nombre,curso});
+  $(txtId).value='';$(txtId).focus();
 }
-$('#fAlumnoSel').onchange=e=>{
-  const id=e.target.value; if(!id)return;
-  if(!alumnosSel.includes(id))alumnosSel.push(id);
-  e.target.value=''; renderChipsAlumnos();
-};
+$('#fAlumnoAdd').onclick=()=>addAlumnoManual('#fAlumnoTxt','#fAlumnoCurso',a=>{
+  if(!alumnosSel.some(x=>x.nombre===a.nombre&&x.curso===a.curso))alumnosSel.push(a);
+  renderChipsAlumnos();
+});
+$('#fAlumnoTxt').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#fAlumnoAdd').click()}});
 function renderChipsAlumnos(){
-  $('#fAlumnosChips').innerHTML=alumnosSel.map(id=>{
-    const a=ALUMNOS.find(x=>x.id===id); if(!a)return'';
-    return `<span class="chip">${esc(a.nombre)}${a.curso?' · '+esc(a.curso):''}<button aria-label="Quitar" data-id="${id}">✕</button></span>`;
-  }).join('');
-  $$('#fAlumnosChips button').forEach(b=>b.onclick=()=>{alumnosSel=alumnosSel.filter(x=>x!==b.dataset.id);renderChipsAlumnos()});
+  $('#fAlumnosChips').innerHTML=alumnosSel.map((a,i)=>
+    `<span class="chip">${esc(a.nombre)} · ${esc(a.curso)}<button aria-label="Quitar" data-i="${i}">✕</button></span>`).join('');
+  $$('#fAlumnosChips button').forEach(b=>b.onclick=()=>{alumnosSel.splice(+b.dataset.i,1);renderChipsAlumnos()});
 }
 
 function refrescarSelects(){
   $('#fProfesional').innerHTML='<option value="">— Selecciona —</option>'+
     PERSONAL.map(p=>`<option value="${p.id}">${esc(p.nombre)}</option>`).join('');
-  // cursos: los oficiales que tengan alumnado (con su grupo), ordenados
-  const cursosConAlumnos=[...new Set(ALUMNOS.map(a=>a.curso).filter(Boolean))]
-    .sort((a,b)=>ordenCurso(a)-ordenCurso(b)||a.localeCompare(b));
-  const sel=$('#fCursoSel').value;
-  $('#fCursoSel').innerHTML='<option value="">— Curso —</option>'+
-    cursosConAlumnos.map(c=>`<option${c===sel?' selected':''}>${esc(c)}</option>`).join('');
-  rellenarAlumnosDeCurso();
   $('#cProfesional').innerHTML='<option value="">— Selecciona —</option>'+
     PERSONAL.map(p=>`<option value="${p.id}">${esc(p.nombre)}</option>`).join('');
-  const selC=$('#cCursoSel').value;
-  $('#cCursoSel').innerHTML='<option value="">— Curso —</option>'+
-    cursosConAlumnos.map(c=>`<option${c===selC?' selected':''}>${esc(c)}</option>`).join('');
-  rellenarAlumnosColectivo();
+  // cursos oficiales con grupos A/B (fijos, sin base de datos de alumnado)
+  const ops='<option value="">— Curso —</option>'+CURSOS.map(c=>
+    GRUPOS.map(g=>`<option>${c}${g?' '+g:''}</option>`).join('')).join('');
+  if(!$('#fAlumnoCurso').options.length||$('#fAlumnoCurso').options.length<2){$('#fAlumnoCurso').innerHTML=ops;$('#cAlumnoCurso').innerHTML=ops}
 }
 
 /* ---- Guardar parte ---- */
@@ -848,7 +870,7 @@ $('#btnGuardar').onclick=async()=>{
     fecha:$('#fFecha').value,
     tramo:$('#fTramo').value,
     profesionalId:prof.id, profesionalNombre:prof.nombre,
-    alumnos:alumnosSel.map(id=>{const a=ALUMNOS.find(x=>x.id===id);return{id,nombre:a?.nombre||'?',curso:a?.curso||''}}),
+    alumnos:alumnosSel.map(a=>({nombre:a.nombre,curso:a.curso})),
     descripcion:$('#fDesc').value.trim(),
     notificaTutores:$('#fNotifTutores').checked,
     fechaNotificacion:$('#fNotifTutores').checked?$('#fNotifFecha').value:null,
@@ -1101,6 +1123,7 @@ async function generarPDF(i){
   const AZUL=[37,99,235], GRIS_F=[241,245,249];
 
   const cabecera=()=>{
+    y=40;
     // Tira oficial de logos a lo ancho
     const lw=W-2*M, lh=lw*120/1400;
     try{d.addImage(LOGOS_CABECERA,'JPEG',M,y,lw,lh)}catch{}
@@ -1112,7 +1135,9 @@ async function generarPDF(i){
     d.text('Santa Fe (Granada) · Código de centro 18008853',W/2,y,{align:'center'});
     d.setTextColor(0);
     y+=12; d.setDrawColor(...AZUL); d.setLineWidth(1.6); d.line(M,y,W-M,y); y+=26;
+    d.setFont('helvetica','normal');d.setFontSize(10); // restaurar fuente para el contenido
   };
+  const nuevaPagina=()=>{d.addPage();cabecera()};
   cabecera();
 
   // --- Título ---
@@ -1122,7 +1147,7 @@ async function generarPDF(i){
   d.text(i.tipo==='grave'?'Conducta gravemente perjudicial a las normas de convivencia · Decreto 328/2010, art. 36':'Conducta contraria a las normas de convivencia · Decreto 328/2010, art. 33',W/2,y+13,{align:'center'});
   d.setTextColor(0);y+=38;
 
-  const salto=n=>{if(y+n>780){d.addPage();y=54}};
+  const salto=n=>{if(y+n>780)nuevaPagina()};
 
   // Caja de datos generales (2 columnas)
   const datos=[
@@ -1214,7 +1239,7 @@ async function generarPDF(i){
   }
 
   // --- Bloque de firma ---
-  if(y>640){d.addPage();y=54}
+  if(y>640)nuevaPagina();
   y=Math.max(y,620);
   d.setFont('helvetica','normal');d.setFontSize(10);
   d.text('En Santa Fe, a '+fFecha(i.firmaFecha||i.fecha),M,y+20);
@@ -1346,26 +1371,6 @@ $('#btnVaciarPersonal').onclick=async()=>{
 
 /* ---- Importación de personal (Excel / PDF / Pegar) ---- */
 $('#btnImportPersonal').onclick=()=>abrirImportador('personal');
-$('#btnImportAlumnos').onclick=()=>{
-  openModal(`
-    <h3>⬆️ Importar alumnado desde PDF de Séneca</h3>
-    <p class="hint">Sube el PDF de la lista de clase de Séneca (formato: <b>1. Apellido1 Apellido2 Nombre</b>). Se generarán automáticamente las <b>siglas</b> con el nombre primero. Puedes subir varios PDFs, uno por curso.</p>
-    <div class="field" style="margin-bottom:12px"><label for="impCurso">¿De qué curso es esta lista?</label>
-      <select id="impCurso"><option value="">— Selecciona el curso —</option>${CURSOS.map(c=>'<option>'+c+'</option>').join('')}</select>
-    </div>
-    <div class="dropzone" id="dzAlum">Arrastra aquí el <b>PDF</b> de la lista de clase<br>o haz clic para seleccionarlo</div>
-    <div id="impRevision"></div>`);
-  const dz=$('#dzAlum');
-  const procesar=f=>{
-    const curso=$('#impCurso').value;
-    if(!curso){toast('✗ Selecciona primero el curso de esta lista','error');return}
-    procesarPDFAlumnos(f,curso);
-  };
-  dz.onclick=()=>{const fi=$('#fileInput');fi.accept='.pdf';fi.onchange=e=>{if(e.target.files[0])procesar(e.target.files[0])};fi.value='';fi.click()};
-  dz.ondragover=e=>{e.preventDefault();dz.classList.add('over')};
-  dz.ondragleave=()=>dz.classList.remove('over');
-  dz.ondrop=e=>{e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])procesar(e.dataTransfer.files[0])};
-};
 
 function abrirImportador(destino){
   const esAlumnos=destino==='alumnos';
@@ -1557,67 +1562,6 @@ async function procesarPDF(file,destino){
   }catch(e){toast('✗ No se pudo procesar el PDF','error')}
 }
 
-async function procesarPDFAlumnos(file,curso){
-  if(!file)return;
-  toast('Extrayendo alumnado del PDF…');
-  try{
-    await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
-    pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    const buf=await file.arrayBuffer();
-    const pdf=await pdfjsLib.getDocument({data:buf}).promise;
-    let lineas=[];
-    for(let p=1;p<=pdf.numPages;p++){
-      const page=await pdf.getPage(p);
-      const tc=await page.getTextContent();
-      const porY=new Map();
-      tc.items.forEach(it=>{const y=Math.round(it.transform[5]);porY.set(y,(porY.get(y)||'')+' '+it.str)});
-      [...porY.entries()].sort((a,b)=>b[0]-a[0]).forEach(([,l])=>lineas.push(l.trim()));
-    }
-    let items=parsearListaClase(lineas.join('\n'));
-    if(!items.length){
-      items=parsearNombres(lineas.join('\n')).map(n=>({nombre:siglasAlumno(n),completo:n,curso}));
-    }else{
-      items.forEach(it=>it.curso=curso);
-    }
-    if(!items.length)return toast('✗ No se han detectado alumnos en el PDF. ¿Es un PDF escaneado?','error');
-    // Mostrar revisión inline
-    const existentes=new Set(ALUMNOS.map(a=>(a.nombre||'').toLowerCase()));
-    $('#impRevision').innerHTML=`
-      <div class="section-title" style="margin-top:18px">Revisión · ${items.length} alumnos · ${curso}</div>
-      <p class="hint">Se muestran las siglas generadas (nombre primero). Puedes editar antes de guardar. Los duplicados aparecen desmarcados.</p>
-      <div class="check-list" style="max-height:280px" id="revAlumList">
-        ${items.map((it,i)=>{
-          const dup=existentes.has(it.nombre.toLowerCase());
-          return '<label class="check-item '+(dup?'':'sel')+'">'+
-            '<input type="checkbox" data-i="'+i+'" '+(dup?'':'checked')+'>'+
-            '<span style="flex:1;display:grid;grid-template-columns:80px 1fr;gap:6px;align-items:center">'+
-              '<input type="text" value="'+it.nombre+'" data-n="'+i+'" style="min-height:34px;padding:5px 8px;font-size:14px;font-weight:700;text-align:center">'+
-              '<span style="font-size:13px;color:var(--color-text-muted)">'+it.completo+'</span>'+
-            '</span>'+(dup?'<span style="font-size:11px;color:var(--color-warning)">ya existe</span>':'')+
-          '</label>'}).join('')}
-      </div>
-      <div class="actions">
-        <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
-        <button class="btn btn-primary" id="impAlumGuardar">💾 Importar ${items.length} alumnos en ${curso}</button>
-      </div>`;
-    bindCheckStyle('#revAlumList');
-    $('#impAlumGuardar').onclick=async()=>{
-      const btn=$('#impAlumGuardar');
-      const sel=$$('#revAlumList input[type=checkbox]:checked').map(c=>{
-        const i=+c.dataset.i;
-        const nombre=document.querySelector('#revAlumList input[data-n="'+i+'"]').value.trim();
-        return nombre?{nombre,curso}:null;
-      }).filter(Boolean);
-      if(!sel.length)return toast('✗ No hay alumnos seleccionados','error');
-      btn.disabled=true;btn.textContent='Importando…';
-      try{
-        await dbBatch('alumnos',sel);
-        toast('✓ '+sel.length+' alumnos de '+curso+' importados');closeModal();
-      }catch{toast('✗ Error al importar','error');btn.disabled=false;btn.textContent='💾 Importar'}
-    };
-  }catch(e){toast('✗ No se pudo procesar el PDF','error')}
-}
-
 function mostrarRevisionPersonal(items){
   // marca duplicados por IdEA (para no re-crear interinos ya presentes)
   const existentes=new Map(PERSONAL.map(p=>[(p.idea||'').toLowerCase(),p]));
@@ -1661,7 +1605,7 @@ function mostrarRevisionPersonal(items){
 function mostrarRevision(nombres,destino,itemsConCurso=null){
   const esAlumnos=destino==='alumnos';
   const items=esAlumnos&&itemsConCurso?itemsConCurso:nombres.map(n=>typeof n==='string'?{nombre:n}:n);
-  const existentes=new Set((esAlumnos?ALUMNOS:PERSONAL).map(p=>p.nombre.toLowerCase()));
+  const existentes=new Set(PERSONAL.map(p=>p.nombre.toLowerCase()));
   $('#impRevision').innerHTML=`
     <div class="section-title" style="margin-top:18px">Revisión · ${items.length} detectados</div>
     <p class="hint">Desmarca los que no procedan o edita el texto antes de importar. Los duplicados con el listado actual aparecen desmarcados.</p>
@@ -1700,38 +1644,6 @@ function mostrarRevision(nombres,destino,itemsConCurso=null){
 }
 
 /* ================= ALUMNADO ================= */
-$('#buscaAlumnos').addEventListener('input',debounce(renderAlumnos,150));
-function renderAlumnos(){
-  const q=$('#buscaAlumnos').value.toLowerCase();
-  const list=ALUMNOS.filter(a=>(a.nombre+' '+(a.curso||'')).toLowerCase().includes(q));
-  const c=$('#listaAlumnos');
-  if(!list.length){c.innerHTML=`<div class="empty"><div class="ico">🧒</div>No hay alumnado registrado.</div>`;return}
-  c.innerHTML=`<p class="hint">${list.length} alumno${list.length!==1?'s':''}</p>`+list.map(a=>`
-    <div class="person-row">
-      <div class="avatar" style="background:var(--color-success-bg);color:var(--color-success)">${esc(iniciales(a.nombre))}</div>
-      <div style="flex:1"><div class="name">${esc(a.nombre)}</div>${a.curso?`<div class="sub">${esc(a.curso)}</div>`:''}</div>
-      <button class="btn btn-danger btn-sm" data-id="${a.id}" aria-label="Eliminar ${esc(a.nombre)}">✕</button>
-    </div>`).join('');
-  $$('#listaAlumnos .btn-danger').forEach(b=>b.onclick=async()=>{
-    const a=ALUMNOS.find(x=>x.id===b.dataset.id);
-    if(await confirmar('Eliminar alumno/a',`¿Eliminar a ${a.nombre}? Los partes guardados no se verán afectados.`,'Eliminar',true)){
-      try{await dbDel('alumnos',b.dataset.id);toast('✓ Eliminado')}catch{toast('✗ Error','error')}
-    }
-  });
-}
-$('#btnAddAlumno').onclick=()=>{
-  openModal(`<h3>Añadir alumno/a</h3>
-    <div class="field"><label for="mNombreA">Nombre</label><input type="text" id="mNombreA" placeholder="Nombre y primer apellido"></div>
-    <div class="field" style="margin-top:12px"><label for="mCursoA">Curso / grupo</label><input type="text" id="mCursoA" placeholder="3ºA, 5ºB…"></div>
-    <div class="actions"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" id="mSaveA">Guardar</button></div>`);
-  $('#mNombreA').focus();
-  $('#mSaveA').onclick=async()=>{
-    const n=$('#mNombreA').value.trim(); if(!n)return toast('✗ Escribe un nombre','error');
-    $('#mSaveA').disabled=true;
-    try{await dbAdd('alumnos',{nombre:n,curso:$('#mCursoA').value.trim()||null});toast('✓ Añadido');closeModal()}
-    catch{toast('✗ Error al guardar','error');$('#mSaveA').disabled=false}
-  };
-};
 
 
 /* ================= CATÁLOGO DETALLADO DE TIPOS DE INCIDENCIA ================= */
@@ -1963,19 +1875,12 @@ function consecuenciasHTML(c){
 let colParticipantes=[]; // [{id,nombre,curso,participacion,conductas:[]}]
 const CONDUCTAS_MIX=[...CONDUCTAS.contraria.map(c=>[c,'contraria']),...CONDUCTAS.grave.map(c=>[c,'grave'])];
 
-$('#cCursoSel').onchange=()=>rellenarAlumnosColectivo();
-function rellenarAlumnosColectivo(){
-  const c=$('#cCursoSel').value;
-  const usados=new Set(colParticipantes.map(p=>p.id));
-  const lista=ALUMNOS.filter(a=>!usados.has(a.id)&&(!c||(a.curso||'')===c));
-  $('#cAlumnoSel').innerHTML='<option value="">— Alumno/a —</option>'+
-    lista.map(a=>`<option value="${a.id}">${esc(a.nombre)}${!c&&a.curso?' ('+esc(a.curso)+')':''}</option>`).join('');
-}
-$('#cAlumnoSel').onchange=e=>{
-  const a=ALUMNOS.find(x=>x.id===e.target.value); if(!a)return;
-  colParticipantes.push({id:a.id,nombre:a.nombre,curso:a.curso||'',participacion:'',conductas:[]});
-  e.target.value=''; renderParticipantes(); rellenarAlumnosColectivo();
-};
+$('#cAlumnoAdd').onclick=()=>addAlumnoManual('#cAlumnoTxt','#cAlumnoCurso',a=>{
+  if(colParticipantes.some(p=>p.nombre===a.nombre&&p.curso===a.curso))return toast('✗ Ese alumno ya está añadido','error');
+  colParticipantes.push({nombre:a.nombre,curso:a.curso,participacion:'',conductas:[]});
+  renderParticipantes();
+});
+$('#cAlumnoTxt').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#cAlumnoAdd').click()}});
 function renderParticipantes(){
   const cont=$('#cParticipantes');
   if(!colParticipantes.length){cont.innerHTML='<div class="empty" style="padding:24px"><div class="ico">👥</div>Añade a los alumnos implicados desde el selector.</div>';return}
@@ -2000,7 +1905,7 @@ function renderParticipantes(){
         </div>
       </details>
     </div>`).join('');
-  $$('#cParticipantes [data-quitar]').forEach(b=>b.onclick=()=>{colParticipantes.splice(+b.dataset.quitar,1);renderParticipantes();rellenarAlumnosColectivo()});
+  $$('#cParticipantes [data-quitar]').forEach(b=>b.onclick=()=>{colParticipantes.splice(+b.dataset.quitar,1);renderParticipantes()});
   $$('#cParticipantes [data-part]').forEach(t=>t.oninput=()=>{colParticipantes[+t.dataset.part].participacion=t.value});
   $$('#cParticipantes input[type=checkbox]').forEach(cb=>cb.onchange=()=>{
     const p=colParticipantes[+cb.dataset.al], c=CONDUCTAS_MIX[+cb.dataset.ci][0];
@@ -2028,8 +1933,8 @@ $('#btnGuardarCol').onclick=async()=>{
     fecha:$('#cFecha').value, tramo:$('#cTramo').value,
     profesionalId:prof.id, profesionalNombre:prof.nombre,
     descripcion:$('#cDesc').value.trim(),
-    alumnos:colParticipantes.map(p=>({id:p.id,nombre:p.nombre,curso:p.curso})),
-    participantes:colParticipantes.map(p=>({id:p.id,nombre:p.nombre,curso:p.curso,participacion:p.participacion.trim()||null,conductas:p.conductas})),
+    alumnos:colParticipantes.map(p=>({nombre:p.nombre,curso:p.curso})),
+    participantes:colParticipantes.map(p=>({nombre:p.nombre,curso:p.curso,participacion:p.participacion.trim()||null,conductas:p.conductas})),
     tipo:esGrave?'grave':'contraria', conductas:union,
     seAplicaCorreccion:true, correcciones:[], otrasMedidas:[],
     efectivas:'Sin determinar aún', reclamacion:false, actitudFamilia:null,
@@ -2052,10 +1957,186 @@ $('#btnGuardarCol').onclick=async()=>{
 $('#btnLimpiarCol').onclick=async()=>{if(await confirmar('Limpiar formulario','Se borrarán los datos no guardados.','Limpiar'))limpiarColectivo()};
 function limpiarColectivo(){
   $('#cFecha').value=hoy();$('#cTitulo').value='';$('#cDesc').value='';
-  colParticipantes=[];renderParticipantes();rellenarAlumnosColectivo();
+  colParticipantes=[];renderParticipantes();
 }
 
 /* ================= INIT ================= */
+
+/* ================= GRÁFICAS DE SEGUIMIENTO ================= */
+const MESES_ESC=[8,9,10,11,0,1,2,3,4,5]; // sep..jun (índices de mes JS)
+const MES_LBL=['Sep','Oct','Nov','Dic','Ene','Feb','Mar','Abr','May','Jun'];
+
+function cursoEscolarDe(fecha){ // "2026-10-03" → "2026-2027"; julio/agosto preparan ya el curso entrante
+  const [y,m]=fecha.split('-').map(Number);
+  return m>=7?`${y}-${y+1}`:`${y-1}-${y}`;
+}
+function incidenciasDelCurso(cursoEsc){
+  return INCIDENCIAS.filter(i=>i.fecha&&cursoEscolarDe(i.fecha)===cursoEsc);
+}
+function poblarCursosEscolares(){
+  const cursos=[...new Set(INCIDENCIAS.filter(i=>i.fecha).map(i=>cursoEscolarDe(i.fecha)))].sort().reverse();
+  const hoyEsc=cursoEscolarDe(hoy());
+  if(!cursos.includes(hoyEsc))cursos.unshift(hoyEsc);
+  const sel=$('#gCursoEscolar'), prev=sel.value;
+  sel.innerHTML=cursos.map(c=>`<option${c===(prev||hoyEsc)?' selected':''}>${c}</option>`).join('');
+}
+$('#gCursoEscolar')?.addEventListener('change',renderGraficas);
+
+function renderGraficas(){
+  if(!$('#graficasCont'))return;
+  poblarCursosEscolares();
+  const cursoEsc=$('#gCursoEscolar').value||cursoEscolarDe(hoy());
+  const inc=incidenciasDelCurso(cursoEsc);
+  const cont=$('#graficasCont');
+  if(!inc.length){cont.innerHTML='<div class="empty"><div class="ico">📊</div>Aún no hay incidencias registradas en el curso '+esc(cursoEsc)+'.</div>';return}
+
+  const cnt=(arr,key)=>{const m=new Map();arr.forEach(x=>{const k=key(x);if(k!=null)m.set(k,(m.get(k)||0)+1)});return m};
+  const hb=(mapa,color,max)=>[...mapa.entries()].sort((a,b)=>b[1]-a[1]).map(([k,v])=>
+    `<div class="hbar"><span class="lbl" title="${esc(k)}">${esc(k)}</span>
+     <span class="track"><span class="fill" style="width:${Math.round(v/max*100)}%;background:${color}"></span></span>
+     <span class="num">${v}</span></div>`).join('');
+
+  // 1) Evolución mensual apilada
+  const porMes=MESES_ESC.map(m=>({c:0,g:0}));
+  inc.forEach(i=>{const m=+i.fecha.split('-')[1]-1;const ix=MESES_ESC.indexOf(m);if(ix>=0)porMes[ix][i.tipo==='grave'?'g':'c']++});
+  const maxMes=Math.max(1,...porMes.map(x=>x.c+x.g));
+  const evol=`<div class="vbars">${porMes.map((x,ix)=>`
+    <div class="vb"><span class="vnum">${x.c+x.g||''}</span>
+      <div class="vcol" style="height:${(x.c+x.g)/maxMes*100}%">
+        <div class="seg-c" style="flex:${x.c}"></div><div class="seg-g" style="flex:${x.g}"></div>
+      </div><span class="vlbl">${MES_LBL[ix]}</span></div>`).join('')}</div>
+    <div class="leyenda"><span><i style="background:var(--color-warning)"></i>Contrarias</span><span><i style="background:var(--color-error)"></i>Graves</span></div>`;
+
+  // 2) Mapa de calor curso × mes
+  const cursosData=[...new Set(inc.flatMap(i=>(i.alumnos||[]).map(a=>a.curso).filter(Boolean)))]
+    .sort((a,b)=>ordenCurso(a)-ordenCurso(b)||a.localeCompare(b));
+  const celda=new Map();
+  inc.forEach(i=>{const m=MESES_ESC.indexOf(+i.fecha.split('-')[1]-1);if(m<0)return;
+    (i.alumnos||[]).forEach(a=>{if(!a.curso)return;const k=a.curso+'|'+m;celda.set(k,(celda.get(k)||0)+1)})});
+  const maxCel=Math.max(1,...celda.values());
+  const heat=cursosData.length?`<div class="heat" style="grid-template-columns:110px repeat(10,1fr)">
+    <span></span>${MES_LBL.map(m=>`<span class="hlbl" style="justify-content:center">${m}</span>`).join('')}
+    ${cursosData.map(c=>`<span class="hlbl" title="${esc(c)}">${esc(c.replace(' Primaria','º P').replace('Infantil ','Inf ').replace(' años','a'))}</span>`+
+      MES_LBL.map((_,m)=>{const v=celda.get(c+'|'+m)||0;
+        const al=v?Math.max(.18,v/maxCel):0;
+        return `<span class="hcell" style="background:${v?`rgba(220,38,38,${al})`:'var(--color-bg)'};color:${al>.55?'#fff':'var(--color-text)'}">${v||''}</span>`}).join('')).join('')}
+  </div>`:'<p class="hint">Sin datos de curso en el alumnado registrado.</p>';
+
+  // 3) Tramo horario / 4) día de semana / 5) conductas / 6) reincidencia / 7) efectividad
+  const porTramo=cnt(inc,i=>i.tramo);
+  const dias=['Lun','Mar','Mié','Jue','Vie'];
+  const porDia=cnt(inc,i=>{const d=new Date(i.fecha+'T12:00').getDay();return d>=1&&d<=5?dias[d-1]:null});
+  const porConducta=cnt(inc.flatMap(i=>i.conductas||[]),x=>x);
+  const topConducta=new Map([...porConducta.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6));
+  const porAlumno=cnt(inc.flatMap(i=>(i.alumnos||[]).map(a=>a.nombre+(a.curso?' ('+a.curso+')':''))),x=>x);
+  const reinc=new Map([...porAlumno.entries()].filter(([,v])=>v>=2).sort((a,b)=>b[1]-a[1]).slice(0,8));
+  const ef=cnt(inc.filter(i=>i.seAplicaCorreccion),i=>i.efectivas||'Sin determinar aún');
+
+  cont.innerHTML=`
+    <div class="gcard"><h3>📈 Evolución mensual (${esc(cursoEsc)}) · ${inc.length} incidencias</h3>${evol}</div>
+    <div class="gcard"><h3>🔥 Mapa de calor · incidencias por curso y mes</h3>${heat}</div>
+    <div class="grid2">
+      <div class="gcard"><h3>📍 ¿Dónde ocurren? (tramo horario)</h3>${hb(porTramo,'var(--color-primary)',Math.max(...porTramo.values()))}</div>
+      <div class="gcard"><h3>📆 ¿Qué días? (día de la semana)</h3>${hb(porDia,'var(--color-secondary)',Math.max(1,...porDia.values()))}</div>
+      <div class="gcard"><h3>⚠️ Conductas más frecuentes</h3>${hb(topConducta,'var(--color-warning)',Math.max(1,...topConducta.values()))}</div>
+      <div class="gcard"><h3>🔁 Alumnado con 2+ incidencias</h3>${reinc.size?hb(reinc,'var(--color-error)',Math.max(...reinc.values())):'<p class="hint">Sin reincidencias. 🎉</p>'}</div>
+    </div>
+    <div class="gcard"><h3>✅ Efectividad de las correcciones aplicadas</h3>${hb(ef,'var(--color-success)',Math.max(1,...ef.values()))}</div>`;
+}
+
+/* ================= SEGUIMIENTO TRIMESTRAL (para Séneca) ================= */
+$('#btnTrimestral').onclick=()=>{
+  const cursoEsc=$('#gCursoEscolar').value||cursoEscolarDe(hoy());
+  const [y1,y2]=cursoEsc.split('-').map(Number);
+  const tri={
+    '1º trimestre':[`${y1}-09-01`,`${y1}-12-22`],
+    '2º trimestre':[`${y1}-12-23`,`${y2}-03-31`],
+    '3º trimestre':[`${y2}-04-01`,`${y2}-06-30`]
+  };
+  openModal(`<h3>📄 Seguimiento trimestral de la convivencia</h3>
+    <p class="hint">Genera el resumen del trimestre para el seguimiento que pide Séneca y para la Comisión de Convivencia. Ajusta las fechas si tu calendario difiere.</p>
+    <div class="radio-row" id="triSel">
+      ${Object.keys(tri).map((t,i)=>`<label class="radio-pill ${i===0?'on':''}"><input type="radio" name="tri" value="${t}" ${i===0?'checked':''}>${t}</label>`).join('')}
+    </div>
+    <div class="grid2" style="margin-top:12px">
+      <div class="field"><label>Desde</label><input type="date" id="triDesde" value="${tri['1º trimestre'][0]}"></div>
+      <div class="field"><label>Hasta</label><input type="date" id="triHasta" value="${tri['1º trimestre'][1]}"></div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="triGenerar">Generar resumen</button>
+    </div>`);
+  $$('#triSel input').forEach(r=>r.onchange=()=>{
+    $$('#triSel .radio-pill').forEach(p=>p.classList.toggle('on',p.querySelector('input').checked));
+    const[d,ha]=tri[r.value];$('#triDesde').value=d;$('#triHasta').value=ha;
+  });
+  $('#triGenerar').onclick=()=>generarTrimestral($('#triDesde').value,$('#triHasta').value,
+    document.querySelector('#triSel input:checked').value,cursoEsc);
+};
+
+function generarTrimestral(desde,hasta,nombreTri,cursoEsc){
+  const inc=INCIDENCIAS.filter(i=>i.fecha>=desde&&i.fecha<=hasta);
+  // trimestre anterior (misma duración inmediatamente antes) para comparar
+  const dur=(new Date(hasta)-new Date(desde));
+  const antHasta=new Date(new Date(desde)-864e5).toISOString().slice(0,10);
+  const antDesde=new Date(new Date(antHasta)-dur).toISOString().slice(0,10);
+  const antInc=INCIDENCIAS.filter(i=>i.fecha>=antDesde&&i.fecha<=antHasta);
+
+  const n=inc.length, nc=inc.filter(i=>i.tipo==='contraria').length, ng=inc.filter(i=>i.tipo==='grave').length;
+  const cnt=(arr,key)=>{const m=new Map();arr.forEach(x=>{const k=key(x);if(k!=null)m.set(k,(m.get(k)||0)+1)});return m};
+  const top=(m,n=3)=>[...m.entries()].sort((a,b)=>b[1]-a[1]).slice(0,n);
+  const tramos=top(cnt(inc,i=>i.tramo));
+  const conductas=top(cnt(inc.flatMap(i=>i.conductas||[]),x=>x),4);
+  const cursosAf=top(cnt(inc.flatMap(i=>(i.alumnos||[]).map(a=>a.curso).filter(Boolean)),x=>x));
+  const correcciones=top(cnt(inc.flatMap(i=>i.correcciones||[]),x=>x),4);
+  const otrasMed=top(cnt(inc.flatMap(i=>i.otrasMedidas||[]),x=>x),4);
+  const reinc=[...cnt(inc.flatMap(i=>(i.alumnos||[]).map(a=>a.nombre+(a.curso?' ('+a.curso+')':''))),x=>x).entries()].filter(([,v])=>v>=2).sort((a,b)=>b[1]-a[1]);
+  const colectivos=inc.filter(i=>i.colectivo).length;
+  const efSi=inc.filter(i=>i.efectivas==='Sí').length, efNo=inc.filter(i=>i.efectivas==='No').length;
+  const dif=n-antInc.length;
+  const tend=antInc.length?(dif===0?'se mantiene estable respecto al período anterior':(dif>0?`aumenta en ${dif} respecto al período anterior (${antInc.length})`:`disminuye en ${-dif} respecto al período anterior (${antInc.length})`)):'sin período anterior con datos para comparar';
+  const lista=arr=>arr.map(([k,v])=>`${k} (${v})`).join('; ')||'—';
+
+  const texto=
+`SEGUIMIENTO TRIMESTRAL DE LA CONVIVENCIA · ${nombreTri.toUpperCase()} · CURSO ${cursoEsc}
+CEIP Capitulaciones de Santa Fe (18008853) · Período: ${fFecha(desde)} a ${fFecha(hasta)}
+
+1. DATOS GENERALES
+Durante el período se han registrado ${n} incidencia${n!==1?'s':''} de convivencia: ${nc} conducta${nc!==1?'s':''} contraria${nc!==1?'s':''} y ${ng} gravemente perjudicial${ng!==1?'es':''}${colectivos?`, de las cuales ${colectivos} corresponde${colectivos!==1?'n':''} a incidentes colectivos`:''}. El número de incidencias ${tend}.
+
+2. ANÁLISIS
+Los tramos con mayor incidencia han sido: ${lista(tramos)}.
+Las conductas más frecuentes: ${lista(conductas)}.
+Cursos con mayor número de alumnado implicado: ${lista(cursosAf)}.
+${reinc.length?`Alumnado con incidencias reiteradas (2 o más): ${reinc.length} alumno${reinc.length!==1?'s':''}, con seguimiento individualizado por parte de la tutoría y la jefatura de estudios.`:'No se registra alumnado con reincidencia en el período.'}
+
+3. MEDIDAS APLICADAS
+Correcciones más utilizadas: ${lista(correcciones)}.
+Otras medidas del plan de convivencia: ${lista(otrasMed)}.
+${efSi+efNo?`Valoración de la efectividad registrada: ${efSi} efectiva${efSi!==1?'s':''}, ${efNo} no efectiva${efNo!==1?'s':''}.`:'La efectividad de las correcciones está pendiente de valoración en la mayoría de los casos.'}
+
+4. VALORACIÓN Y PROPUESTAS
+[Completar por la dirección: valoración cualitativa del clima de convivencia del trimestre, actuaciones preventivas realizadas (tutorías, mediación, aula de convivencia), coordinación con familias y propuestas de mejora para el siguiente trimestre.]`;
+
+  openModal(`<h3>📄 ${nombreTri} · ${esc(cursoEsc)}</h3>
+    <div class="kpis" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
+      <div class="kpi b-blue"><div class="n">${n}</div><div class="l">Incidencias</div></div>
+      <div class="kpi b-amber"><div class="n">${nc}</div><div class="l">Contrarias</div></div>
+      <div class="kpi b-red"><div class="n">${ng}</div><div class="l">Graves</div></div>
+    </div>
+    <textarea id="triTexto" style="min-height:280px;font-size:13px;line-height:1.5">${esc(texto)}</textarea>
+    <p class="hint" style="margin-top:8px">El apartado 4 queda abierto para tu valoración cualitativa antes de pegarlo en Séneca.</p>
+    <div class="actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cerrar</button>
+      <button class="btn btn-primary" id="triCopiar">📋 Copiar resumen</button>
+    </div>`);
+  $('#triCopiar').onclick=()=>{
+    navigator.clipboard.writeText($('#triTexto').value)
+      .then(()=>toast('✓ Resumen copiado, listo para Séneca'))
+      .catch(()=>toast('✗ No se pudo copiar','error'));
+  };
+}
+
 /* ================= INIT (formularios; los datos cargan tras login) ================= */
 initForm();
 renderTipos();
