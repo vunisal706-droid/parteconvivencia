@@ -46,15 +46,19 @@ header{
   border-bottom:1px solid var(--color-border);
   padding:20px 24px 0;
 }
-.header-top{display:flex;align-items:center;gap:14px;max-width:1100px;margin:0 auto;}
+.header-top{display:flex;align-items:center;gap:14px;max-width:1100px;margin:0 auto;
+  flex-wrap:wrap;row-gap:10px}
+.header-titles{min-width:0;flex:1 1 180px}
 .logo{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,var(--color-primary),var(--color-secondary));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:20px;box-shadow:var(--shadow-sm);flex-shrink:0}
-.header-top h1{font-size:clamp(1.15rem,3vw,1.5rem);font-weight:800;letter-spacing:-.02em}
+.header-top h1{font-size:clamp(1.15rem,3vw,1.5rem);font-weight:800;letter-spacing:-.02em;overflow-wrap:anywhere}
 .header-top p{font-size:13px;color:var(--color-text-muted);margin-top:2px}
 #syncState{margin-left:auto;font-size:12px;font-weight:600;padding:6px 12px;border-radius:99px;background:var(--color-info-bg);color:var(--color-info);white-space:nowrap}
 #syncState.ok{background:var(--color-success-bg);color:var(--color-success)}
 #syncState.err{background:var(--color-error-bg);color:var(--color-error)}
 
-nav{max-width:1100px;margin:16px auto 0;display:flex;gap:4px;overflow-x:auto}
+nav{max-width:1100px;margin:16px auto 0;display:flex;gap:4px;overflow-x:auto;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
 nav button{
   border:none;background:transparent;padding:12px 18px;font-size:14.5px;font-weight:600;color:var(--color-text-muted);
   border-radius:12px 12px 0 0;border-bottom:3px solid transparent;transition:.15s;white-space:nowrap;min-height:44px;
@@ -206,14 +210,50 @@ ul.plain li::before{content:"•";position:absolute;left:6px;color:var(--color-p
 .leyenda i{width:12px;height:12px;border-radius:3px;display:inline-block}
 
 /* ===== Login ===== */
-#loginScreen{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;
+#loginScreen{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;
   background:radial-gradient(ellipse at 20% 10%,rgba(37,99,235,.18),transparent 55%),radial-gradient(ellipse at 90% 90%,rgba(124,58,237,.15),transparent 55%),var(--color-bg)}
 .login-card{background:#fff;border:1px solid var(--color-border);border-radius:20px;box-shadow:var(--shadow-md);padding:32px 28px;max-width:400px;width:100%;animation:fadeInUp .3s ease}
+@media(max-width:640px){
+  #loginScreen{padding:16px;align-items:flex-start}
+  .login-card{padding:26px 20px;margin:auto 0}
+}
 body.autenticado #loginScreen{display:none}
 body:not(.autenticado) header,body:not(.autenticado) main{display:none}
-#saludo{margin-left:auto;display:flex;align-items:center;gap:10px}
+#saludo{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 #saludo .hola{font-size:13.5px;font-weight:600;color:var(--color-text)}
 #saludo .hola b{color:var(--color-primary)}
+
+/* ===== Nada puede ensanchar la página ===== */
+html{overflow-x:hidden}
+body{overflow-x:hidden;max-width:100%}
+
+/* ===== Cabecera en móvil ===== */
+@media(max-width:640px){
+  header{padding:14px 14px 0}
+  .logo{width:38px;height:38px;font-size:17px;border-radius:10px}
+  .header-top{gap:10px;row-gap:8px}
+  /* logo + título ocupan la 1ª línea; estado y saludo bajan a la 2ª */
+  .header-titles{flex:1 1 calc(100% - 52px)}
+  .header-top h1{font-size:1.05rem;line-height:1.25}
+  .header-top p{font-size:11.5px;line-height:1.3}
+  #syncState{order:3;margin-left:0;font-size:11px;padding:5px 10px}
+  #saludo{order:4;margin-left:auto;gap:8px}
+  #saludo .hola{font-size:12.5px}
+  #btnLogout{flex-shrink:0}
+  nav{margin-top:12px}
+  nav button{padding:11px 14px;font-size:13.5px}
+  main{padding:18px 12px 80px}
+  .card{padding:16px}
+  /* 16px evita el zoom automático del navegador al enfocar un campo */
+  input,select,textarea,
+  input[type=text],input[type=date],input[type=search]{font-size:16px}
+  table{font-size:13px}
+  .table-wrap,.tabla-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
+@media(max-width:380px){
+  .header-top h1{font-size:.98rem}
+  #saludo .hola{font-size:12px}
+}
 @media print{header nav,#toast,.btn,.filters{display:none!important}}
 </style>
 </head>
@@ -246,7 +286,7 @@ body:not(.autenticado) header,body:not(.autenticado) main{display:none}
 <header>
   <div class="header-top">
     <div class="logo" aria-hidden="true">C+</div>
-    <div>
+    <div class="header-titles">
       <h1>Convive+ · Gestor de Convivencia</h1>
       <p>CEIP Capitulaciones de Santa Fe · Decreto 328/2010</p>
     </div>
