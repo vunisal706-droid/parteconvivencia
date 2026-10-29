@@ -500,6 +500,12 @@ body{overflow-x:hidden;max-width:100%}
 <!-- ============ TAB: SÉNECA ============ -->
 <section class="tab" id="tab-seneca">
   <div class="card">
+    <div class="radio-row" id="senModo" style="margin-bottom:14px">
+      <label class="radio-pill on"><input type="radio" name="senModo" value="parte" checked> 📝 Pasar un parte</label>
+      <label class="radio-pill"><input type="radio" name="senModo" value="trim"> 📊 Evaluación trimestral de la convivencia</label>
+    </div>
+    <div id="senTrim" style="display:none"></div>
+    <div id="senParte">
     <h2>🏛️ Pasar un parte a Séneca</h2>
     <p class="hint">Los apartados salen en el mismo orden que en Séneca. Pulsa <b>Copiar</b> y pega en su casilla; donde Séneca da opciones, te digo cuál marcar. El botón se pone en verde al copiar.</p>
     <div class="filters" style="margin-bottom:6px">
@@ -507,6 +513,7 @@ body{overflow-x:hidden;max-width:100%}
       <label class="radio-pill" style="justify-content:flex-start"><input type="checkbox" id="senPend" checked> Solo pendientes de pasar</label>
     </div>
     <div id="senCuerpo"></div>
+    </div>
   </div>
 </section>
 
@@ -1109,6 +1116,119 @@ function copiarSenecaModal(id){
   });
 }
 
+/* ================= SÉNECA · EVALUACIÓN TRIMESTRAL ================= */
+$$('#senModo input').forEach(r=>r.onchange=()=>{
+  $$('#senModo .radio-pill').forEach(p=>p.classList.toggle('on',p.querySelector('input').checked));
+  const t=r.value==='trim';
+  $('#senTrim').style.display=t?'block':'none'; $('#senParte').style.display=t?'none':'block';
+  if(t)renderEvalTrim();
+});
+let etTri=null;
+function trimestresEsc(cursoEsc){
+  const [y1,y2]=cursoEsc.split('-').map(Number);
+  return {1:[`${y1}-09-01`,`${y1}-12-22`],2:[`${y1}-12-23`,`${y2}-03-31`],3:[`${y2}-04-01`,`${y2}-06-30`]};
+}
+function triActual(){const m=+hoy().slice(5,7);return m>=9?1:(m<=3?2:(m<=6?3:1))}
+const listaN=(arr)=>arr.map(([k,v])=>`${k} (${v})`).join('; ');
+function analisisTrim(cursoEsc,T){
+  const tri=trimestresEsc(cursoEsc), [desde,hasta]=tri[T];
+  let antDesde,antHasta;
+  if(T>1){[antDesde,antHasta]=tri[T-1];}else{const [y1]=cursoEsc.split('-').map(Number);[antDesde,antHasta]=trimestresEsc((y1-1)+'-'+y1)[3];}
+  const inc=INCIDENCIAS.filter(i=>i.fecha>=desde&&i.fecha<=hasta), ant=INCIDENCIAS.filter(i=>i.fecha>=antDesde&&i.fecha<=antHasta);
+  const cnt=(arr,key)=>{const m=new Map();arr.forEach(x=>{const k=key(x);if(k)m.set(k,(m.get(k)||0)+1)});return m};
+  const top=(m,n=3)=>[...m.entries()].sort((a,b)=>b[1]-a[1]).slice(0,n);
+  const g=a=>a.filter(i=>i.tipo==='grave').length;
+  const d={desde,hasta,n:inc.length,nAnt:ant.length,g:g(inc),gAnt:g(ant),hayAnt:ant.length>0||T>1,
+    tramos:top(cnt(inc,i=>i.tramo)),conductas:top(cnt(inc.flatMap(i=>i.conductas||[]),x=>x),3),
+    cursos:top(cnt(inc.flatMap(i=>(i.alumnos||[]).map(a=>a.curso)),x=>x),3),
+    reinc:[...cnt(inc.flatMap(i=>(i.alumnos||[]).map(a=>a.nombre+(a.curso?' ('+a.curso+')':''))),x=>x).values()].filter(v=>v>=2).length,
+    efSi:inc.filter(i=>i.efectivas==='Sí').length,efNo:inc.filter(i=>i.efectivas==='No').length,
+    medidas:top(cnt(inc.flatMap(i=>i.otrasMedidas||[]),x=>x),4),correcciones:top(cnt(inc.flatMap(i=>i.correcciones||[]),x=>x),3),
+    familiasColab:inc.filter(i=>/^colabora/i.test(i.actitudFamilia||'')||i.actitudFamilia==='Receptiva').length,
+    familiasNo:inc.filter(i=>i.actitudFamilia&&!/^colabora/i.test(i.actitudFamilia)&&i.actitudFamilia!=='Receptiva').length};
+  // 1. Evolución
+  let evo='Estable';
+  if(d.hayAnt){
+    const dif=d.n-d.nAnt, umbral=Math.max(1,Math.round(d.nAnt*0.15));
+    if(dif<=-umbral&&d.g<=d.gAnt)evo='Favorable';
+    else if(dif>=umbral||d.g>d.gAnt+1)evo='Desfavorable';
+  } else if(d.n===0) evo='Favorable';
+  d.evo=evo;
+  // 2. Causas
+  const C=[];
+  C.push(`En el ${T}º trimestre se han registrado ${d.n} incidencia${d.n!==1?'s':''} de convivencia (${d.n-d.g} conducta${d.n-d.g!==1?'s':''} contraria${d.n-d.g!==1?'s':''} y ${d.g} gravemente perjudicial${d.g!==1?'es':''})`+(d.hayAnt?`, frente a ${d.nAnt} del trimestre anterior (${d.gAnt} grave${d.gAnt!==1?'s':''}).`:'.'));
+  if(d.n){
+    if(d.tramos.length)C.push(`Los momentos con más incidencias son: ${listaN(d.tramos)}.`);
+    if(d.conductas.length)C.push(`Las conductas más repetidas son: ${listaN(d.conductas)}.`);
+    if(d.cursos.length)C.push(`Por cursos, destacan: ${listaN(d.cursos)}.`);
+    C.push(d.reinc?`Hay ${d.reinc} alumno${d.reinc!==1?'s':''} con incidencias reiteradas, que concentra${d.reinc!==1?'n':''} buena parte de los partes.`:'No hay alumnado con incidencias reiteradas: los casos son puntuales.');
+  }
+  if(evo==='Favorable')C.push('La mejora se atribuye a la aplicación de las normas de convivencia del plan de centro, al trabajo de los valores del mes en las tutorías y a la rápida respuesta ante los conflictos'+(d.medidas.length?`, con medidas como ${d.medidas.map(x=>x[0].toLowerCase()).join(', ')}`:'')+'.');
+  else if(evo==='Desfavorable')C.push('El aumento se relaciona con la concentración de conflictos en los momentos menos estructurados'+(d.reinc?' y con un grupo reducido de alumnado reincidente':'')+(d.familiasNo?`, así como con la falta de colaboración de algunas familias (${d.familiasNo} caso${d.familiasNo!==1?'s':''})`:'')+'.');
+  else C.push('La situación se mantiene: los conflictos son de carácter leve o puntual y se resuelven con las medidas habituales del plan de convivencia.');
+  if(d.efSi+d.efNo)C.push(`De las correcciones valoradas, ${d.efSi} han sido efectivas y ${d.efNo} no.`);
+  d.causas=C.join(' ');
+  // 3. Decisiones de mejora
+  const M=[], tr=d.tramos.map(x=>x[0]), cd=d.conductas.map(x=>x[0].toLowerCase()).join(' ');
+  if(tr.includes('Recreo'))M.push('Reforzar la vigilancia del recreo por zonas y organizar juegos y actividades dirigidas en el patio.');
+  if(tr.includes('Entrada/Salida'))M.push('Revisar la organización de las filas y la vigilancia en las entradas y salidas.');
+  if(tr.includes('En el intercambio de clases'))M.push('Agilizar los cambios de clase para que el grupo no quede sin profesorado.');
+  if(tr.includes('En clase'))M.push('Repasar en tutoría las normas de aula y unificar criterios de actuación del equipo docente.');
+  if(tr.includes('En el comedor'))M.push('Coordinar con el personal del comedor las normas y la comunicación de incidencias.');
+  if(/agresi|pelea|f[ií]sic/.test(cd))M.push('Aplicar la mediación escolar y el protocolo correspondiente en los casos de agresión.');
+  if(/respeto|insult|injuri|ofens|desconsideraci/.test(cd))M.push('Trabajar el respeto y la comunicación positiva a través del valor del mes y de sesiones de educación emocional.');
+  if(d.reinc)M.push('Seguimiento individualizado del alumnado reincidente por tutoría y jefatura de estudios, con compromisos de convivencia con las familias.');
+  if(d.efNo)M.push('Revisar las correcciones que no han resultado efectivas y sustituirlas por medidas educativas.');
+  if(d.familiasNo)M.push('Intensificar la comunicación con las familias que no colaboran.');
+  if(evo==='Favorable')M.push('Mantener las medidas que están funcionando y difundirlas en el claustro.');
+  M.push('Seguimiento trimestral en la Comisión de Convivencia del Consejo Escolar.');
+  d.decisiones=M.map(x=>'- '+x).join('\n');
+  return d;
+}
+function renderEvalTrim(){
+  const box=$('#senTrim'), cursoEsc=cursoEscolarDe(hoy());
+  if(!etTri)etTri=triActual();
+  const d=analisisTrim(cursoEsc,etTri);
+  const key=cursoEsc+'_T'+etTri;
+  get(ref(db,'convivencia/evalTrimestral/'+key)).then(sn=>{
+    const g=sn.val()||{};
+    const evo=g.evolucion||d.evo, causas=g.causas??d.causas, dec=g.decisiones??d.decisiones;
+    box.innerHTML=`<h2>📊 Evaluación trimestral de la convivencia</h2>
+      <p class="hint">Texto redactado con los partes del trimestre. Puedes retocarlo: se guarda solo. Luego pulsa <b>Copiar</b> en cada apartado y pégalo en Séneca.</p>
+      <div class="radio-row" style="margin:6px 0 4px">${[1,2,3].map(t=>`<label class="radio-pill ${t===etTri?'on':''}"><input type="radio" name="etT" value="${t}" ${t===etTri?'checked':''}> ${t}º trimestre</label>`).join('')}</div>
+      <p class="hint">Curso ${esc(cursoEsc)} · del ${fSen(d.desde)} al ${fSen(d.hasta)} · ${d.n} parte${d.n!==1?'s':''}${d.hayAnt?` (trimestre anterior: ${d.nAnt})`:''}</p>
+      <div class="section-title">1.- Evolución de la convivencia en el centro</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div class="radio-row">${['Favorable','Desfavorable','Estable'].map(v=>`<label class="radio-pill ${v===evo?'on':''}"><input type="radio" name="etEvo" value="${v}" ${v===evo?'checked':''}> ${v}</label>`).join('')}</div>
+        <span class="hint" style="margin:0">👉 Marca en Séneca: <b id="etEvoTxt">${evo}</b>${!g.evolucion?' (propuesta según los datos)':''}</span>
+      </div>
+      <div class="section-title">2.- Breve descripción de las causas que han motivado dicha evolución</div>
+      <textarea id="etCausas" style="min-height:150px">${esc(causas)}</textarea>
+      <button class="btn btn-ghost btn-sm etCp" data-t="etCausas" style="margin-top:6px">📋 Copiar</button>
+      <div class="section-title">3.- Decisiones de mejora sobre la evolución descrita y sus causas</div>
+      <textarea id="etDec" style="min-height:150px">${esc(dec)}</textarea>
+      <button class="btn btn-ghost btn-sm etCp" data-t="etDec" style="margin-top:6px">📋 Copiar</button>
+      <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
+        <button class="btn btn-ghost" id="etRegen">↺ Volver a redactar con los datos</button>
+      </div>`;
+    const guardarET=campos=>update(ref(db,'convivencia/evalTrimestral/'+key),campos).catch(()=>toast('✗ No se pudo guardar','error'));
+    $$('input[name=etT]').forEach(r=>r.onchange=()=>{etTri=+r.value;renderEvalTrim()});
+    $$('input[name=etEvo]').forEach(r=>r.onchange=()=>{
+      $$('input[name=etEvo]').forEach(x=>x.closest('.radio-pill').classList.toggle('on',x.checked));
+      $('#etEvoTxt').textContent=r.value; guardarET({evolucion:r.value});
+    });
+    $('#etCausas').onchange=e=>guardarET({causas:e.target.value});
+    $('#etDec').onchange=e=>guardarET({decisiones:e.target.value});
+    $$('.etCp').forEach(b=>b.onclick=()=>navigator.clipboard.writeText($('#'+b.dataset.t).value).then(()=>{
+      b.textContent='✓ Copiado';b.style.background='var(--color-success-bg)';b.style.color='var(--color-success)';b.style.borderColor='var(--color-success)';
+    }).catch(()=>toast('✗ No se pudo copiar','error')));
+    $('#etRegen').onclick=async()=>{
+      if(!await confirmar('Volver a redactar','Se sustituirá lo que hayas retocado por un texto nuevo con los datos actuales.','Redactar'))return;
+      await remove(ref(db,'convivencia/evalTrimestral/'+key)).catch(()=>{}); renderEvalTrim();
+    };
+  }).catch(()=>{box.innerHTML='<div class="empty">No se pudo leer la base de datos.</div>'});
+}
+
 /* ================= PESTAÑA SÉNECA ================= */
 const fSen=d=>d?d.split('-').reverse().join('/'):'';
 // «Eva María Castilla Alcalde» → «Castilla Alcalde, Eva María» (como en el desplegable de Séneca)
@@ -1206,13 +1326,14 @@ function renderSeneca(silencioso){
 }
 
 (function novedades(){
-  const K='convive-novedades', ID='2026-10-29-seneca';
+  const K='convive-novedades', ID='2026-10-29-seneca-trim';
   try{ if(localStorage.getItem(K)===ID) return; }catch(e){ return; }
   const ver=()=>{ if(!document.body.classList.contains('autenticado')){ setTimeout(ver,1500); return; }
     openModal(`<h3>✨ Novedades de Convive+</h3><ul style="padding-left:20px;line-height:1.55">
       <li><b>🏛️ Nueva pestaña Séneca</b>: eliges un parte y te salen sus datos en el mismo orden que en Séneca, con botón <b>Copiar</b> en cada apartado y la opción que hay que marcar.</li>
       <li>Botón <b>«Ya está grabado en Séneca»</b> para saber qué partes faltan por pasar.</li>
-      <li>«Actitud de la familia» usa ahora las mismas opciones que Séneca.</li></ul>
+      <li>«Actitud de la familia» usa ahora las mismas opciones que Séneca.</li>
+      <li><b>📊 Evaluación trimestral de la convivencia</b> (dentro de Séneca): la app propone la evolución y redacta las causas y las decisiones de mejora con los datos de los partes, listas para copiar.</li></ul>
       <div class="actions"><button class="btn btn-primary" id="novOk">Entendido</button></div>`);
     $('#novOk').onclick=()=>{ try{localStorage.setItem(K,ID)}catch(e){} closeModal(); };
   };
