@@ -298,6 +298,7 @@ body{overflow-x:hidden;max-width:100%}
     <button data-tab="nuevo" role="tab">📝 Parte</button>
     <button data-tab="colectivo" role="tab">👥 Colectivo</button>
     <button data-tab="lista" role="tab">📋 Incidencias</button>
+    <button data-tab="seneca" role="tab">🏛️ Séneca</button>
     <button data-tab="personal" role="tab">👩‍🏫 Personal</button>
     <button data-tab="graficas" role="tab">📊 Gráficas</button>
     <button data-tab="protocolos" role="tab">🛡️ Protocolos</button>
@@ -418,8 +419,7 @@ body{overflow-x:hidden;max-width:100%}
           <label for="fActitud">Actitud de la familia ante las correcciones</label>
           <select id="fActitud">
             <option value="">— Sin registrar —</option>
-            <option>Colaboradora</option><option>Receptiva</option><option>Indiferente</option>
-            <option>Disconforme</option><option>No localizada</option>
+            <option>Colabora</option><option>No colabora</option><option>Impide la corrección</option>
           </select>
         </div>
       </div>
@@ -491,6 +491,19 @@ body{overflow-x:hidden;max-width:100%}
     <input type="date" id="filtDesde" title="Desde">
   </div>
   <div id="listaIncidencias"></div>
+</section>
+
+<!-- ============ TAB: SÉNECA ============ -->
+<section class="tab" id="tab-seneca">
+  <div class="card">
+    <h2>🏛️ Pasar un parte a Séneca</h2>
+    <p class="hint">Los apartados salen en el mismo orden que en Séneca. Pulsa <b>Copiar</b> y pega en su casilla; donde Séneca da opciones, te digo cuál marcar. El botón se pone en verde al copiar.</p>
+    <div class="filters" style="margin-bottom:6px">
+      <select id="senSel" style="flex:3"></select>
+      <label class="radio-pill" style="justify-content:flex-start"><input type="checkbox" id="senPend" checked> Solo pendientes de pasar</label>
+    </div>
+    <div id="senCuerpo"></div>
+  </div>
 </section>
 
 <!-- ============ TAB: PERSONAL ============ -->
@@ -796,6 +809,7 @@ function suscribir(){
     INCIDENCIAS=aLista(s).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')||(b.creado||0)-(a.creado||0));
     renderLista();
     if(document.querySelector('#tab-graficas.active'))renderGraficas();
+    if(document.querySelector('#tab-seneca.active'))renderSeneca(true);
   });
 }
 
@@ -804,6 +818,7 @@ $$('nav button').forEach(b=>b.onclick=()=>{
   $$('nav button').forEach(x=>x.classList.toggle('active',x===b));
   $$('.tab').forEach(t=>t.classList.toggle('active',t.id==='tab-'+b.dataset.tab));
   if(b.dataset.tab==='graficas')renderGraficas();
+  if(b.dataset.tab==='seneca')renderSeneca();
 });
 
 /* ================= FORMULARIO PARTE ================= */
@@ -984,6 +999,7 @@ function renderLista(){
         <span class="badge neutral">${esc(i.tramo)}</span>
         ${i.colectivo?'<span class="badge neutral">👥 Colectivo</span>':''}
         ${i.firma?'<span class="badge neutral">✍️ Firmado</span>':''}
+        ${i.enSeneca?'<span class="badge neutral">🏛️ En Séneca</span>':''}
         ${i.seAplicaCorreccion===false?'<span class="badge neutral">Sin corrección</span>':''}
       </div>
       <div class="who">${(i.alumnos||[]).map(a=>esc(a.nombre)).join(', ')}</div>
@@ -1088,6 +1104,116 @@ function copiarSenecaModal(id){
     }).catch(()=>toast('✗ No se pudo copiar','error'));
   });
 }
+
+/* ================= PESTAÑA SÉNECA ================= */
+const fSen=d=>d?d.split('-').reverse().join('/'):'';
+// «Eva María Castilla Alcalde» → «Castilla Alcalde, Eva María» (como en el desplegable de Séneca)
+function nombreSeneca(n){
+  const w=String(n||'').trim().split(/\s+/); if(w.length<3)return n||'';
+  return w.slice(-2).join(' ')+', '+w.slice(0,-2).join(' ');
+}
+const ACTITUD_SENECA={'Colabora':'Colabora','No colabora':'No colabora','Impide la corrección':'Impide la corrección',
+  'Colaboradora':'Colabora','Receptiva':'Colabora','Indiferente':'No colabora','Disconforme':'No colabora','No localizada':'No colabora'};
+let senId=null, senPart=0;
+function renderSeneca(silencioso){
+  const sel=$('#senSel'); if(!sel)return;
+  const soloPend=$('#senPend').checked;
+  const lista=INCIDENCIAS.filter(i=>!soloPend||!i.enSeneca||i.id===senId);
+  if(!lista.find(i=>i.id===senId))senId=lista[0]?.id||null;
+  sel.innerHTML=lista.length?lista.map(i=>`<option value="${i.id}"${i.id===senId?' selected':''}>${fSen(i.fecha)} · ${esc((i.alumnos||[]).map(a=>a.nombre+(a.curso?' ('+a.curso+')':'')).join(', ')||i.titulo||'Parte')} · ${i.tipo==='grave'?'Grave':'Contraria'}${i.enSeneca?' · ✓ en Séneca':''}</option>`).join(''):'<option value="">No hay partes pendientes</option>';
+  sel.onchange=()=>{senId=sel.value;senPart=0;renderSeneca()};
+  $('#senPend').onchange=()=>renderSeneca();
+  const i=INCIDENCIAS.find(x=>x.id===senId);
+  const box=$('#senCuerpo');
+  if(!i){box.innerHTML=`<div class="empty"><div class="ico">🏛️</div>${soloPend?'Todos los partes están ya en Séneca. Quita «Solo pendientes» para verlos.':'Aún no hay partes.'}</div>`;return}
+  // Parte colectivo: en Séneca se graba un incidente por alumno
+  const parts=i.colectivo?(i.participantes||[]):null;
+  if(parts&&senPart>=parts.length)senPart=0;
+  const P=parts?parts[senPart]:null;
+  const conductas=P?(P.conductas||[]):(i.conductas||[]);
+  const titulo=i.titulo||conductas[0]||String(i.descripcion||'').split(/[.\n]/)[0].slice(0,90);
+  const desc=P&&P.participacion?i.descripcion+'\n\nParticipación de '+P.nombre+': '+P.participacion:i.descripcion;
+  const aplica=i.seAplicaCorreccion!==false;
+  const C=(etq,val,extra)=>({etq,val,extra,tipo:'copiar'});
+  const M=(etq,opcion,extra)=>({etq,val:opcion,extra,tipo:'marcar'});
+  const L=(etq,items,vacio)=>({etq,items,vacio,tipo:'lista'});
+  const bloques=[
+    ['Incidente',[
+      C('Fecha',fSen(i.fecha)),
+      M('Profesional que ha comunicado el incidente',nombreSeneca(i.profesionalNombre),'Elígelo en el desplegable'),
+      M('Tramo horario',i.tramo),
+      C('Incidente',titulo,'Título breve'),
+      C('Descripción detallada',desc),
+      M('Se notifica a los/as tutores/as',i.notificaTutores?'Sí: marca la casilla':'No: déjala sin marcar'),
+      ...(i.notificaTutores&&i.fechaNotificacion?[C('Fecha de notificación a los tutores',fSen(i.fechaNotificacion))]:[])
+    ]],
+    ['Conductas desarrolladas en este incidente',[
+      M('Tipo de conducta contraria/grave',i.tipo==='grave'?'Conductas graves (Decreto 327/2010 (art.37) o Decreto 328/2010 (art.36))':'Conductas contrarias (Decreto 327/2010 (art.34) o Decreto 328/2010 (art.33))'),
+      L('Conductas desarrolladas en este incidente',conductas,'Ninguna conducta marcada en el parte'),
+      ...(i.otrasConductas?[C('Otras conductas contrarias no incluidas en el Decreto. Describirlas',i.otrasConductas)]:[])
+    ]],
+    ['Correcciones / medidas disciplinarias aplicadas en este incidente',aplica?[
+      M('Estado de la corrección','Se aplica correción / medida disciplinaria'),
+      M('Tipo de correcciones/medidas disciplinarias',i.tipo==='grave'?'Medidas disciplinarias por conductas gravemente perjudiciales (Decreto 327/2010 (art.38) o Decreto 328/2010 (art.37))':'Correciones a las conductas contrarias (Decreto 327/2010 (art.35) o Decreto 328/2010 (art.34))'),
+      L('Correcciones o medidas disciplinarias aplicadas',i.correcciones||[],'Ninguna corrección marcada'),
+      ...((i.otrasMedidas||[]).length?[L('Otras medidas aplicadas',i.otrasMedidas)]:[]),
+      M('¿Han sido efectivas las correcciones/ medidas disciplinarias?',i.efectivas||'Sin determinar aún'),
+      M('Se ha presentado reclamación ante las correcciones/ medidas disciplinarias',i.reclamacion?'Sí: marca la casilla':'No: déjala sin marcar'),
+      ...(i.actitudFamilia?[M('Actitud de la familia ante las correcciones/ medidas disciplinarias',ACTITUD_SENECA[i.actitudFamilia]||i.actitudFamilia)]:[])
+    ]:[
+      M('Estado de la corrección','No se aplica correción / medida disciplinaria'),
+      C('Motivos por los que excepcionalmente, no se aplican correcciones/ medidas disciplinarias',i.motivosNoAplicacion||'')
+    ]]
+  ];
+  const vals=[];
+  const btn=(v,txt)=>{vals.push(v);return `<button class="btn btn-ghost btn-sm senCp" data-ix="${vals.length-1}" style="flex-shrink:0">${txt||'Copiar'}</button>`};
+  const fila=(etq,cont,boton,extra)=>`<div style="display:flex;gap:10px;align-items:center;border:1.5px solid var(--color-border);border-radius:10px;padding:10px 12px">
+      <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.04em">${esc(etq)}${extra?` <span style="text-transform:none;font-weight:600">· ${esc(extra)}</span>`:''}</div>${cont}</div>${boton||''}</div>`;
+  let h='';
+  if(parts){
+    h+=`<div class="hint" style="margin:6px 0">👥 Parte colectivo: en Séneca se graba un incidente por alumno. Alumno/a:</div><div class="radio-row" style="margin-bottom:8px">${parts.map((p,ix)=>`<label class="radio-pill${ix===senPart?' on':''}"><input type="radio" name="senP" value="${ix}"${ix===senPart?' checked':''}> ${esc(p.nombre)}</label>`).join('')}</div>`;
+  } else {
+    h+=`<div class="hint" style="margin:6px 0">Alumno/a: <b>${esc((i.alumnos||[]).map(a=>a.nombre+(a.curso?' ('+a.curso+')':'')).join(', '))}</b> — búscalo en Séneca y crea el incidente.</div>`;
+  }
+  bloques.forEach(([tit,filas])=>{
+    h+=`<div class="section-title">${esc(tit)}</div><div style="display:flex;flex-direction:column;gap:8px">`;
+    filas.forEach(f=>{
+      if(f.tipo==='copiar') h+=fila(f.etq,`<div style="font-size:14px;white-space:pre-wrap">${esc(f.val)||'<i>—</i>'}</div>`,f.val?btn(f.val):'',f.extra);
+      else if(f.tipo==='marcar') h+=fila(f.etq,`<div style="font-size:14px">👉 Marca: <b>${esc(f.val)}</b></div>`,btn(f.val),f.extra);
+      else h+=fila(f.etq,f.items.length?`<div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">${f.items.map(x=>`<div style="display:flex;gap:8px;align-items:center"><span style="flex:1;font-size:14px">☑️ ${esc(x)}</span>${btn(x,'Copiar')}</div>`).join('')}</div><div class="hint" style="margin:4px 0 0">Selecciónalas en la «Lista de elementos» de Séneca.</div>`:`<div class="hint">${esc(f.vacio||'—')}</div>`,'');
+    });
+    h+='</div>';
+  });
+  h+=`<div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">
+    <button class="btn ${i.enSeneca?'btn-ghost':'btn-primary'}" id="senHecho" style="flex:1;min-width:200px">${i.enSeneca?'↩️ Marcar como pendiente':'✅ Ya está grabado en Séneca'}</button>
+    <button class="btn btn-ghost" id="senTodo">📋 Copiar todo en un texto</button></div>`;
+  box.innerHTML=h;
+  $$('input[name=senP]').forEach(r=>r.onchange=()=>{senPart=+r.value;renderSeneca()});
+  $$('.senCp').forEach(b=>b.onclick=()=>{
+    navigator.clipboard.writeText(vals[+b.dataset.ix]).then(()=>{
+      b.textContent='✓ Copiado';b.style.background='var(--color-success-bg)';b.style.color='var(--color-success)';b.style.borderColor='var(--color-success)';
+    }).catch(()=>toast('✗ No se pudo copiar','error'));
+  });
+  $('#senTodo').onclick=()=>navigator.clipboard.writeText(textoSeneca(i)).then(()=>toast('✓ Copiado')).catch(()=>toast('✗ No se pudo copiar','error'));
+  $('#senHecho').onclick=async()=>{
+    try{await dbUpd('incidencias',i.id,{enSeneca:!i.enSeneca,enSenecaFecha:!i.enSeneca?hoy():null});toast(!i.enSeneca?'✓ Marcado como grabado en Séneca':'✓ Vuelve a estar pendiente')}
+    catch{toast('✗ No se pudo guardar','error')}
+  };
+}
+
+(function novedades(){
+  const K='convive-novedades', ID='2026-10-29-seneca';
+  try{ if(localStorage.getItem(K)===ID) return; }catch(e){ return; }
+  const ver=()=>{ if(!document.body.classList.contains('autenticado')){ setTimeout(ver,1500); return; }
+    openModal(`<h3>✨ Novedades de Convive+</h3><ul style="padding-left:20px;line-height:1.55">
+      <li><b>🏛️ Nueva pestaña Séneca</b>: eliges un parte y te salen sus datos en el mismo orden que en Séneca, con botón <b>Copiar</b> en cada apartado y la opción que hay que marcar.</li>
+      <li>Botón <b>«Ya está grabado en Séneca»</b> para saber qué partes faltan por pasar.</li>
+      <li>«Actitud de la familia» usa ahora las mismas opciones que Séneca.</li></ul>
+      <div class="actions"><button class="btn btn-primary" id="novOk">Entendido</button></div>`);
+    $('#novOk').onclick=()=>{ try{localStorage.setItem(K,ID)}catch(e){} closeModal(); };
+  };
+  setTimeout(ver,1200);
+})();
 
 function textoSeneca(i){
   const L=[];
